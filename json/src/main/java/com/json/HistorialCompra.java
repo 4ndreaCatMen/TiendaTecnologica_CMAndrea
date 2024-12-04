@@ -1,8 +1,17 @@
 package com.json;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import javax.swing.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.sql.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class HistorialCompra {
 
@@ -49,20 +58,35 @@ public class HistorialCompra {
         }
     }
 
-    // Método para obtener el ID del usuario desde el JSON
     private int obtenerIdUsuarioDesdeJson(String nombreUsuario) {
-        // Obtener la lista de usuarios desde el archivo JSON o simulada
-        List<Usuario> usuarios = obtenerUsuariosJson();  // Método que te devuelve la lista de usuarios
-
-        for (Usuario usuario : usuarios) {
-            if (usuario.getNombre().equals(nombreUsuario)) {
-                return usuario.getId();  // Retorna el ID del usuario si se encuentra
-            }
+        // Cargar el archivo JSON
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("info.json");
+        if (inputStream == null) {
+            throw new IllegalStateException("No se pudo cargar el archivo JSON.");
         }
-        // Si no se encuentra el usuario, devolvemos -1
-        return -1;
+
+        Gson gson = new Gson();
+        try (InputStreamReader reader = new InputStreamReader(inputStream)) {
+            Type type = new TypeToken<Map<String, Object>>() {}.getType();
+            Map<String, Object> data = gson.fromJson(reader, type);
+            Map<String, Object> tienda = (Map<String, Object>) data.get("tienda");
+            List<Map<String, Object>> usuarios = (List<Map<String, Object>>) tienda.get("usuarios");
+            // Buscar el ID del usuario por su nombre
+            for (Map<String, Object> usuario : usuarios) {
+                String nombre = (String) usuario.get("nombre");
+                if (nombreUsuario.equals(nombre)) {
+                    // Devolver el ID del usuario
+                    return ((Double) usuario.get("id")).intValue();
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error al procesar el JSON.", e);
+        }
+        throw new IllegalArgumentException("Usuario no encontrado: " + nombreUsuario);
     }
 
+
+    // Método para obtener la lista de usuarios desde el JSON
     // Método para obtener la lista de usuarios desde el JSON
     private List<Usuario> obtenerUsuariosJson() {
         // Aquí deberías implementar la lectura del archivo JSON y devolver la lista de usuarios

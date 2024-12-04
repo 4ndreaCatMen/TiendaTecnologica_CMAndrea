@@ -134,7 +134,7 @@ public class Categorias {
 
     // Método para establecer la imagen de fondo en una ventana
     private void establecerFondo(JFrame ventana) {
-        String rutaImagen = "Fondo1.jpg";  // Ajusta esta ruta si es necesario (si está en un subdirectorio, agrega la carpeta)
+        String rutaImagen = "/Fondo1.jpg";  // Ajusta esta ruta si es necesario (si está en un subdirectorio, agrega la carpeta)
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(rutaImagen);
 
         try {
