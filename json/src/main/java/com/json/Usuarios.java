@@ -162,82 +162,64 @@ public class Usuarios {
     }
 
     private void mostrarHistorialUsuario(String nombreUsuario) {
-        // Creamos una nueva ventana para mostrar el historial del usuario seleccionado
+        HistorialCompra historialCompra = new HistorialCompra();
+        List<String> historial = historialCompra.obtenerHistorial(nombreUsuario);
+        // Creamos una instancia de `HistorialCompra` para obtener el historial del usuario.
+        // Usamos el método `obtenerHistorial` para obtener la lista de productos comprados.
+
         JFrame ventanaHistorial = new JFrame("Historial de Compras - " + nombreUsuario);
-        ventanaHistorial.setSize(800, 600); // Dimensiones fijas
-        ventanaHistorial.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Acción al cerrar
-        ventanaHistorial.setLocationRelativeTo(null); // Centramos la ventana en la pantalla
-        ventanaHistorial.setResizable(false); // Impedimos que se pueda redimensionar
+        ventanaHistorial.setSize(800, 600);
+        ventanaHistorial.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        ventanaHistorial.setLocationRelativeTo(null); // Centra la ventana en la pantalla.
+        ventanaHistorial.setResizable(false); // Evita que se pueda redimensionar.
+        // Configuramos una nueva ventana para mostrar el historial del usuario.
 
-
-        // Agregamos un fondo visual a la ventana
         JLabel fondo = new JLabel(new ImageIcon(getClass().getResource("/Fondo1.png")));
         fondo.setLayout(new BorderLayout());
-        ventanaHistorial.setContentPane(fondo); // Asignamos el fondo como contenido principal
+        ventanaHistorial.setContentPane(fondo);
+        // Añadimos un fondo visual a la ventana usando una imagen.
 
-        // Añadimos un encabezado para mostrar el título
         JLabel encabezado = new JLabel("Historial de Compras de " + nombreUsuario, SwingConstants.CENTER);
-        encabezado.setFont(new Font("Arial", Font.BOLD, 16)); // Fuente más grande y en negrita
-        encabezado.setForeground(Color.WHITE); // Texto blanco para que resalte sobre el fondo
-        ventanaHistorial.add(encabezado, BorderLayout.NORTH); // Colocamos el encabezado arriba
+        encabezado.setFont(new Font("Arial", Font.BOLD, 16)); // Fuente grande y en negrita.
+        encabezado.setForeground(Color.WHITE); // Texto blanco para que sea visible sobre el fondo.
+        ventanaHistorial.add(encabezado, BorderLayout.NORTH);
+        // Creamos un encabezado con el nombre del usuario para mostrarlo en la parte superior de la ventana.
 
-
-        // Panel para mostrar el contenido del historial
         JPanel panelHistorial = new JPanel();
-        panelHistorial.setLayout(new BoxLayout(panelHistorial, BoxLayout.Y_AXIS)); // Alineación vertical
-        panelHistorial.setOpaque(false); // Hacemos transparente el fondo para mantener la imagen
+        panelHistorial.setLayout(new BoxLayout(panelHistorial, BoxLayout.Y_AXIS));
+        panelHistorial.setOpaque(false);
+        // Creamos un panel para mostrar el historial de productos.
+        // Usamos un layout vertical para apilar los productos uno debajo del otro.
 
-
-        // Intentamos conectarnos a la base de datos para obtener las compras del usuario
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/tienda", "root", "root")) {
-            String query = "SELECT nombre_producto FROM historico_compras WHERE nombre_usuario = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, nombreUsuario); // Pasamos el nombre del usuario como parámetro
-
-                try (ResultSet rs = stmt.executeQuery()) { // Ejecutamos la consulta
-                    boolean hasData = false; // Bandera para saber si hay datos
-
-                    // Recorremos los resultados para obtener los productos comprados
-                    while (rs.next()) {
-                        hasData = true;
-                        String nombreProducto = rs.getString("nombre_producto");
-
-                        // Creamos una etiqueta para mostrar cada producto
-                        JLabel labelProducto = new JLabel("Producto: " + nombreProducto, SwingConstants.CENTER);
-                        labelProducto.setFont(new Font("Arial", Font.PLAIN, 14)); // Fuente estándar
-                        labelProducto.setForeground(Color.WHITE); // Texto blanco
-                        labelProducto.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrado horizontal
-                        panelHistorial.add(labelProducto); // Añadimos la etiqueta al panel
-                        panelHistorial.add(Box.createRigidArea(new Dimension(0, 10))); // Espaciado entre productos
-                    }
-
-                    // Si no hay compras, mostramos un mensaje informativo
-                    if (!hasData) {
-                        JLabel sinCompras = new JLabel("No se encontraron compras para este usuario.", SwingConstants.CENTER);
-                        sinCompras.setFont(new Font("Arial", Font.ITALIC, 14)); // Fuente cursiva
-                        sinCompras.setForeground(Color.WHITE); // Texto blanco
-                        sinCompras.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrado horizontal
-                        panelHistorial.add(sinCompras);
-                    }
-                }
+        if (historial.isEmpty()) {
+            JLabel sinCompras = new JLabel("No se encontraron compras para este usuario.", SwingConstants.CENTER);
+            sinCompras.setFont(new Font("Arial", Font.ITALIC, 14)); // Fuente cursiva para el mensaje.
+            sinCompras.setForeground(Color.WHITE); // Texto blanco.
+            sinCompras.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrado horizontal.
+            panelHistorial.add(sinCompras);
+            // Si el historial está vacío, mostramos un mensaje indicando que no hay compras registradas.
+        } else {
+            for (String producto : historial) {
+                JLabel labelProducto = new JLabel("Producto: " + producto, SwingConstants.CENTER);
+                labelProducto.setFont(new Font("Arial", Font.PLAIN, 14)); // Fuente estándar para cada producto.
+                labelProducto.setForeground(Color.WHITE); // Texto blanco.
+                labelProducto.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrado horizontal.
+                panelHistorial.add(labelProducto);
+                panelHistorial.add(Box.createRigidArea(new Dimension(0, 10))); // Añadimos un espacio entre productos.
+                // Recorremos el historial y creamos una etiqueta para cada producto comprado.
             }
-        } catch (SQLException e) {
-            // Si ocurre un error con la base de datos, mostramos un mensaje de error
-            JLabel errorLabel = new JLabel("Error al consultar la base de datos: " + e.getMessage(), SwingConstants.CENTER);
-            errorLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            errorLabel.setForeground(Color.RED); // Texto rojo para destacar el error
-            errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrado horizontal
-            panelHistorial.add(errorLabel);
         }
 
-        // Hacemos el contenido desplazable en caso de que sea muy largo
         JScrollPane scrollPane = new JScrollPane(panelHistorial);
-        scrollPane.setOpaque(false); // Transparente para respetar el fondo
+        scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
-        ventanaHistorial.add(scrollPane, BorderLayout.CENTER); // Añadimos el panel desplazable al centro
+        ventanaHistorial.add(scrollPane, BorderLayout.CENTER);
+        // Hacemos el panel desplazable para manejar casos donde haya muchos productos.
 
-        ventanaHistorial.setVisible(true); // Mostramos la ventana
+        ventanaHistorial.setVisible(true);
+        // Mostramos la ventana de historial.
     }
+
 
 
     private JButton crearBotonNav(String texto) {
